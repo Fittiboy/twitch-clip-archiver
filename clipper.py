@@ -1,9 +1,40 @@
 from twitchAPI.twitch import Twitch
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 import json
 import urllib.request as dl
 import sys
 from os.path import isfile
-from datetime import datetime, timedelta
+from os import remove
+from datetime import datetime, timedelta, datetime
+
+
+gauth = GoogleAuth()
+gauth.LoadCredentialsFile("credentials.txt")
+
+drive = GoogleDrive(gauth)
+
+file_list = drive.ListFile({'q': "'root' in parents"}).GetList()
+for file1 in file_list:
+    if file1['title'] == "Clipsmitten Repository":
+        id1 = file1['id']
+    if file1['title'] == "Clips Staging Area":
+        parent_id = file1['id']
+
+to_search = drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
+to_search += drive.ListFile({'q': f"'{parent_id}' in parents"}).GetList()
+files = []
+
+while to_search:
+    item = to_search.pop()
+    if item["mimeType"] == "application/vnd.google-apps.folder":
+        id1 = item['id']
+        to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
+    else:
+        files.append(item['title'])
+        print(len(files), end='\r')
+
+print(len(files))
 
 
 with open("apis.json") as apis_file:
@@ -54,21 +85,21 @@ def dl_progress(count, block_size, total_size):
     sys.stdout.write("\r...%d%%" % percent)
     sys.stdout.flush()
 
-start = datetime(2021, 2, 1)
+start = datetime(2018, 6, 22)
 
 while True:
-    if start.year == 2021 and start.month == 3:
+    now = datetime.now()
+    if start.year == now.year and start.month == now.month + 1:
         break
     all_urls = []
     pagination = None
-    failed = []
     total = 0
 
     while pagination != "DONE":
         last_pagination = pagination
         new_urls, pagination = get_urls(pagination=pagination,
                                         start=start,
-                                        end=start + timedelta(days=3))
+                                        end=start + timedelta(days=1))
         all_urls += new_urls
         print(len(all_urls))
 
@@ -78,15 +109,22 @@ while True:
         dl_url = url[1]
         base_path = "/home/fitti/projects/clipper/smitten/"
         file_name = url[0]
-        if isfile(base_path + file_name):
+        if file_name in files:
             continue
         print(str(total) + "\t" + base_path + file_name)
         try:
             dl.urlretrieve(dl_url, base_path + file_name,
                            reporthook=dl_progress)
+            upload = drive.CreateFile({'title': file_name ,'parents': [{'id': parent_id}]})
+            upload.SetContentFile(base_path + file_name)
+            upload.Upload()
+            print()
+            remove(base_path + file_name)
         except Exception as e:
-            failed.append(url)
             print(e)
-            print("Failed")
+            with open("failed.txt", "a") as failed_file:
+                failed_file.write(url[0] + " - " + url[1])
+            print("FAILED!")
+            raise e
 
-    start += timedelta(days=3)
+    start += timedelta(days=1)
