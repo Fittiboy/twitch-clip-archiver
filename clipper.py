@@ -32,9 +32,9 @@ while to_search:
         to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
     else:
         files.append(item['title'])
-        print(len(files), end='\r')
+        print("Total files found on Google Drive: " + str(len(files)), end='\r')
 
-print(len(files))
+print("Total files found on Google Drive: " + str(len(files)))
 
 
 with open("apis.json") as apis_file:
@@ -94,6 +94,7 @@ while True:
     all_urls = []
     pagination = None
     total = 0
+    datestring = now.strftime("%a, %Y/%B/%d")
 
     while pagination != "DONE":
         last_pagination = pagination
@@ -101,9 +102,9 @@ while True:
                                         start=start,
                                         end=start + timedelta(days=1))
         all_urls += new_urls
-        print(len(all_urls), end='\r')
+        print(f"Clips created on {datestring}: " + str(len(all_urls)), end='\r')
 
-    print(len(all_urls))
+    print(f"Clips created on {datestring}: " + str(len(all_urls)))
 
     for url in all_urls:
         total += 1
