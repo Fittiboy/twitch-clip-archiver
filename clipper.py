@@ -94,7 +94,7 @@ while True:
     all_urls = []
     pagination = None
     total = 0
-    datestring = now.strftime("%a, %Y/%B/%d")
+    datestring = start.strftime("%a, %Y/%B/%d")
 
     while pagination != "DONE":
         last_pagination = pagination
