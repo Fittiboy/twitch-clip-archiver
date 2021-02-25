@@ -21,8 +21,8 @@ for file1 in file_list:
     if file1['title'] == "Clips Staging Area":
         parent_id = file1['id']
 
-to_search = drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
-to_search += drive.ListFile({'q': f"'{parent_id}' in parents"}).GetList()
+to_search = drive.ListFile({'q': f"'{parent_id}' in parents"}).GetList()
+to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
 files = []
 
 while to_search:
