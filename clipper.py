@@ -85,7 +85,7 @@ def dl_progress(count, block_size, total_size):
     sys.stdout.write("\r...%d%%" % percent)
     sys.stdout.flush()
 
-start = datetime(2018, 6, 22)
+start = datetime(2021, 1, 11)
 
 while True:
     now = datetime.now()
@@ -101,18 +101,19 @@ while True:
                                         start=start,
                                         end=start + timedelta(days=1))
         all_urls += new_urls
-        print(len(all_urls))
+        print(len(all_urls), end='\r')
+
+    print(len(all_urls))
 
     for url in all_urls:
         total += 1
-        print("\n\n", url[0], url[1])
         dl_url = url[1]
         base_path = "/home/fitti/projects/clipper/smitten/"
         file_name = url[0]
         if file_name in files:
             continue
-        print(str(total) + "\t" + base_path + file_name)
         try:
+            print(str(total) + "\t" + base_path + file_name)
             dl.urlretrieve(dl_url, base_path + file_name,
                            reporthook=dl_progress)
             upload = drive.CreateFile({'title': file_name ,'parents': [{'id': parent_id}]})
