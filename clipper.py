@@ -35,7 +35,8 @@ def get_gdrive_files(credentials):
             to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
         else:
             files.append(item['title'])
-            print("\rTotal files found on Google Drive: " + str(len(files)))
+            print("\rTotal files found on Google Drive: " + str(len(files)),
+                  end="")
 
     return files
 
