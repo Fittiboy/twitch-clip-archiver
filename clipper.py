@@ -6,7 +6,7 @@ import urllib.request as dl
 import sys
 from os.path import isfile
 from os import remove
-from datetime import datetime, timedelta, datetime
+from datetime import datetime, timedelta
 
 
 gauth = GoogleAuth()
@@ -89,7 +89,10 @@ start = datetime(2021, 1, 11)
 
 while True:
     now = datetime.now()
-    if start.year == now.year and start.month == now.month + 1:
+    null_time = datetime(1970, 1, 1)
+    now_sec = (now - null_time).total_seconds()
+    start_sec = (start - null_time).total_seconds()
+    if start_sec > now_sec:
         break
     all_urls = []
     pagination = None
