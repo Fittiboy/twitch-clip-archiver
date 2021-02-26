@@ -4,8 +4,8 @@ from pydrive.drive import GoogleDrive
 import json
 import urllib.request as dl
 import sys
-from os.path import isfile
-from os import remove
+from os.path import isfile, isdir, realpath
+from os import remove, mkdir
 from datetime import datetime, timedelta
 
 
@@ -112,7 +112,11 @@ while True:
     for url in all_urls:
         total += 1
         dl_url = url[1]
-        base_path = "/home/fitti/projects/clipper/smitten/"
+        filepath = realpath(__file__)
+        filedir = "/".join(filepath.split("/")[:-1])
+        base_path = realpath(__file__) + "/clips/"
+        if not isdir(base_path):
+            mkdir(base_path)
         file_name = url[0]
         if file_name in files:
             continue
