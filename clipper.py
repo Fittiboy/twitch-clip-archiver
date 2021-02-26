@@ -211,7 +211,7 @@ if __name__ == "__main__":
             file_name = url[0]
             if gdrive and file_name in files:
                 continue
-            elif isfile(base_path + file_name):
+            elif isfile(base_path + file_name) and not gdrive:
                 continue
             try:
                 print(str(total) + "\t" + base_path + file_name)
