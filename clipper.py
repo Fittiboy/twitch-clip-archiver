@@ -10,22 +10,21 @@ from datetime import datetime, timedelta
 from argparse import ArgumentParser
 
 
-def get_gdrive_files(credentials):
+def get_gdrive_files(credentials, clips, staging):
     gauth = GoogleAuth()
     gauth.LoadCredentialsFile(credentials)
     drive = GoogleDrive(gauth)
 
     file_list = drive.ListFile({'q': "'root' in parents"}).GetList()
     for file1 in file_list:
-        # Folder names currently hardcoded! Change them here
-        if file1['title'] == "Clipsmitten Repository":
-            id1 = file1['id']
-        # and here!
-        if file1['title'] == "Clips Staging Area":
-            parent_id = file1['id']
+        if file1['title'] == clips:
+            clips_repo = file1['id']
+        if file1['title'] == staging:
+            staging_folder = file1['id']
 
-    to_search = drive.ListFile({'q': f"'{parent_id}' in parents"}).GetList()
-    to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
+    to_search = drive.ListFile({'q': f"'{staging_folder}' in parents"}).GetList()
+    if clips:
+        to_search += drive.ListFile({'q': f"'{clips_repo}' in parents"}).GetList()
     files = []
 
     while to_search:
@@ -82,19 +81,30 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("streamer", help="name of the streamer to pull clips from",
                         type=str)
-    parser.add_argument("--start_date", help="First day to start looking " +
+    parser.add_argument("--start_date", help="first day to start looking " +
                         "for clips (default: day the streamer's account was "+
                         "created)",
                         metavar="YYYY/MM/DD",
                         type=str)
-    parser.add_argument("--end_date", help="Last day to look for clips." +
+    parser.add_argument("--end_date", help="last day to look for clips" +
                         " (default: current day)",
                         metavar="YYYY/MM/DD",
                         type=str)
-    parser.add_argument("--local", help="Store clips locally (only necessary "+
+    parser.add_argument("--clips_dir", help="directory to check for already" +
+                        " uploaded clips in Google Drive (must be in root)",
+                        metavar="directory",
+                        type=str)
+    parser.add_argument("--staging_dir", help="staging directory to upload new" +
+                        " clips to in Google Drive (must be in root, included " +
+                        "in search for already uploaded clips)",
+                        metavar="directory",
+                        type=str)
+    parser.add_argument("--local", help="store clips locally (only necessary "+
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
     args = parser.parse_args()
+    if not args.local and not args.staging_dir:
+        parser.error("No --staging_dir directory specified")
 
     filepath = realpath(__file__)
     filedir = "/".join(filepath.split("/")[:-1]) + "/"
@@ -102,7 +112,9 @@ if __name__ == "__main__":
     gdrive_credentials = filedir + "credentials.txt"
 
     if isfile(gdrive_credentials) and not args.local:
-        files, drive = get_gdrive_files(gdrive_credentials)
+        files, drive = get_gdrive_files(gdrive_credentials,
+                                        args.clips_dir,
+                                        args.staging_dir)
         gdrive = True
     elif args.local:
         print("Storing files locally.\n")
