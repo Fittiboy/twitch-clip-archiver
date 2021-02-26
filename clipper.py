@@ -103,8 +103,6 @@ if __name__ == "__main__":
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
     args = parser.parse_args()
-    if not args.local and not args.staging_dir:
-        parser.error("No --staging_dir directory specified")
 
     filepath = realpath(__file__)
     filedir = "/".join(filepath.split("/")[:-1]) + "/"
@@ -122,6 +120,8 @@ if __name__ == "__main__":
     else:
         print("No Google Drive credentials.txt found. Storing files locally.\n")
         gdrive = False
+    if gdrive and not args.staging_dir:
+        parser.error("No --staging_dir directory specified")
 
     try:
         with open("apis.json") as apis_file:
