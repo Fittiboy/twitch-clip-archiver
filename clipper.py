@@ -38,7 +38,7 @@ def get_gdrive_files(credentials):
             print("\rTotal files found on Google Drive: " + str(len(files)),
                   end="")
 
-    return files
+    return files, drive
 
 
 def get_urls(twitch, start, end, b_id, pagination=None):
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     gdrive_credentials = filedir + "credentials.txt"
 
     if isfile(gdrive_credentials) and not args.local:
-        files = get_gdrive_files(gdrive_credentials)
+        files, drive = get_gdrive_files(gdrive_credentials)
         gdrive = True
     elif args.local:
         print("Storing files locally.\n")
