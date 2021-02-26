@@ -85,7 +85,7 @@ def dl_progress(count, block_size, total_size):
     sys.stdout.write("\r...%d%%" % percent)
     sys.stdout.flush()
 
-start = datetime(2021, 1, 11)
+start = datetime(2021, 2, 20)
 
 while True:
     now = datetime.now()
