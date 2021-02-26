@@ -38,7 +38,7 @@ def get_gdrive_files(credentials, clips, staging):
                   end="\r")
 
     print("Total files found on Google Drive: " + str(len(files)))
-    return files, drive
+    return files, staging_folder, drive
 
 
 def get_urls(twitch, start, end, b_id, pagination=None):
@@ -112,9 +112,9 @@ if __name__ == "__main__":
     gdrive_credentials = filedir + "credentials.txt"
 
     if isfile(gdrive_credentials) and not args.local:
-        files, drive = get_gdrive_files(gdrive_credentials,
-                                        args.clips_dir,
-                                        args.staging_dir)
+        files, staging_folder, drive = get_gdrive_files(gdrive_credentials,
+                                                        args.clips_dir,
+                                                        args.staging_dir)
         gdrive = True
     elif args.local:
         print("Storing files locally.\n")
@@ -218,7 +218,7 @@ if __name__ == "__main__":
                 dl.urlretrieve(dl_url, base_path + file_name,
                                reporthook=dl_progress)
                 if gdrive:
-                    upload = drive.CreateFile({'title': file_name ,'parents': [{'id': parent_id}]})
+                    upload = drive.CreateFile({'title': file_name ,'parents': [{'id': staging_folder}]})
                     upload.SetContentFile(base_path + file_name)
                     upload.Upload()
                     remove(base_path + file_name)
