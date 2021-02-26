@@ -35,9 +35,10 @@ def get_gdrive_files(credentials):
             to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
         else:
             files.append(item['title'])
-            print("\rTotal files found on Google Drive: " + str(len(files)),
-                  end="")
+            print("Total files found on Google Drive: " + str(len(files)),
+                  end="\r")
 
+    print("Total files found on Google Drive: " + str(len(files)))
     return files, drive
 
 
@@ -184,7 +185,10 @@ if __name__ == "__main__":
                                             b_id=b_id,
                                             pagination=pagination)
             all_urls += new_urls
-            print(f"\rClips created on {datestring}: " + str(len(all_urls)))
+            print(f"Clips created on {datestring}: " + str(len(all_urls)),
+                  end="\r")
+
+        print(f"Clips created on {datestring}: " + str(len(all_urls)))
 
         for url in all_urls:
             total += 1
