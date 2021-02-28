@@ -1,10 +1,12 @@
 from twitchAPI.twitch import Twitch
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import re
 import json
 import urllib.request as dl
 import sys
 from os.path import isfile, isdir, realpath
+from os.path import join as pjoin
 from os import remove, makedirs
 from datetime import datetime, timedelta
 from argparse import ArgumentParser
@@ -223,27 +225,31 @@ if __name__ == "__main__":
         for url in all_urls:
             total += 1
             dl_url = url[1]
-            base_path = filedir + f"clips/{args.streamer}/"
+            base_path = pjoin(filedir, "clips", args.streamer)
             if not isdir(base_path):
                 makedirs(base_path, exist_ok=True)
             file_name = url[0]
+            if sys.platform.startswith("win"):
+                file_name = file_name.strip().replace(" ", "_")
+                file_name = re.sub(r'(?u)[^-\w.]', "", file_name)
+            fullpath = pjoin(base_path, file_name)
             if gdrive and file_name in files:
                 continue
-            elif isfile(base_path + file_name) and not gdrive:
+            elif isfile(fullpath) and not gdrive:
                 continue
             try:
                 print(str(total) + "/" + str(len(all_urls)) + "\t" +
-                      base_path + file_name)
-                dl.urlretrieve(dl_url, base_path + file_name,
+                      fullpath)
+                dl.urlretrieve(dl_url, fullpath,
                                reporthook=dl_progress)
                 if gdrive:
                     upload = drive.CreateFile({'title': file_name,
                                               'parents': [{
                                                       'id': staging_folder
                                                       }]})
-                    upload.SetContentFile(base_path + file_name)
+                    upload.SetContentFile(fullpath)
                     upload.Upload()
-                    remove(base_path + file_name)
+                    remove(fullpath)
                 print()
             except Exception as e:
                 print(e)
