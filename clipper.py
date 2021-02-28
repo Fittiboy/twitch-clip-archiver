@@ -214,7 +214,7 @@ if __name__ == "__main__":
             elif isfile(base_path + file_name) and not gdrive:
                 continue
             try:
-                print(str(total) + "\t" + base_path + file_name)
+                print(str(total) + "/" + str(len(all_urls)) + "\t" + base_path + file_name)
                 dl.urlretrieve(dl_url, base_path + file_name,
                                reporthook=dl_progress)
                 if gdrive:
