@@ -1,4 +1,5 @@
 ## (Prologue: Using the utility in Windows)
+*(The tool now works fine in Windows, though the filenames will be missing a lot of special characters!)*
 The clip titles contain many special characters, which Windows is too scared to touch (? and : are scary, I get it!).  
 This is totally fine though, since you can simply activate a feature called [Windows Subsystems for Linux](https://docs.microsoft.com/en-us/windows/wsl/),
 which allows you to use the tool anyway,
