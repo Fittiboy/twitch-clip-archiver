@@ -22,9 +22,11 @@ def get_gdrive_files(credentials, clips, staging):
         if file1['title'] == staging:
             staging_folder = file1['id']
 
-    to_search = drive.ListFile({'q': f"'{staging_folder}' in parents"}).GetList()
+    to_search = drive.ListFile({'q': f"'{staging_folder}' in parents"})
+    to_search = to_search.GetList()
     if clips:
-        to_search += drive.ListFile({'q': f"'{clips_repo}' in parents"}).GetList()
+        to_add = drive.ListFile({'q': f"'{clips_repo}' in parents"}).GetList()
+        to_search += to_add
     files = []
 
     while to_search:
@@ -79,27 +81,33 @@ def dl_progress(count, block_size, total_size):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("streamer", help="name of the streamer to pull clips from",
+    parser.add_argument("streamer",
+                        help="name of the streamer to pull clips from",
                         type=str)
-    parser.add_argument("--start_date", help="first day to start looking " +
-                        "for clips (default: day the streamer's account was "+
+    parser.add_argument("--start_date",
+                        help="first day to start looking " +
+                        "for clips (default: day the streamer's account was " +
                         "created)",
                         metavar="YYYY/MM/DD",
                         type=str)
-    parser.add_argument("--end_date", help="last day to look for clips" +
+    parser.add_argument("--end_date",
+                        help="last day to look for clips" +
                         " (default: current day)",
                         metavar="YYYY/MM/DD",
                         type=str)
-    parser.add_argument("--clips_dir", help="directory to check for already" +
+    parser.add_argument("--clips_dir",
+                        help="directory to check for already" +
                         " uploaded clips in Google Drive (must be in root)",
                         metavar="directory",
                         type=str)
-    parser.add_argument("--staging_dir", help="staging directory to upload new" +
-                        " clips to in Google Drive (must be in root, included " +
-                        "in search for already uploaded clips)",
+    parser.add_argument("--staging_dir",
+                        help="staging directory to upload new " +
+                        "clips to in Google Drive (must be in root, included" +
+                        " in search for already uploaded clips)",
                         metavar="directory",
                         type=str)
-    parser.add_argument("--local", help="store clips locally (only necessary "+
+    parser.add_argument("--local",
+                        help="store clips locally (only necessary " +
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
     args = parser.parse_args()
@@ -118,7 +126,8 @@ if __name__ == "__main__":
         print("Storing files locally.\n")
         gdrive = False
     else:
-        print("No Google Drive credentials.txt found. Storing files locally.\n")
+        print("No Google Drive credentials.txt found. Storing files locally.")
+        print()
         gdrive = False
     if gdrive and not args.staging_dir:
         parser.error("No --staging_dir directory specified")
@@ -214,11 +223,15 @@ if __name__ == "__main__":
             elif isfile(base_path + file_name) and not gdrive:
                 continue
             try:
-                print(str(total) + "/" + str(len(all_urls)) + "\t" + base_path + file_name)
+                print(str(total) + "/" + str(len(all_urls)) + "\t" +
+                      base_path + file_name)
                 dl.urlretrieve(dl_url, base_path + file_name,
                                reporthook=dl_progress)
                 if gdrive:
-                    upload = drive.CreateFile({'title': file_name ,'parents': [{'id': staging_folder}]})
+                    upload = drive.CreateFile({'title': file_name,
+                                              'parents': [{
+                                                      'id': staging_folder
+                                                      }]})
                     upload.SetContentFile(base_path + file_name)
                     upload.Upload()
                     remove(base_path + file_name)
