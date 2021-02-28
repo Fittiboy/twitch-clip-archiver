@@ -43,7 +43,7 @@ def get_gdrive_files(credentials, clips, staging):
     return files, staging_folder, drive
 
 
-def get_urls(twitch, start, end, b_id, pagination=None):
+def get_urls(twitch, start, end, b_id, pagination=None, clipper=None):
     clips_list = []
     global game_ids
 
@@ -54,6 +54,7 @@ def get_urls(twitch, start, end, b_id, pagination=None):
         thumb_url = clip["thumbnail_url"]
         clip_url = thumb_url.split("-preview", 1)[0] + ".mp4"
         game_id = clip["game_id"]
+        creator = clip["creator_name"]
         game = game_ids.get(game_id, None)
         if not game:
             game = twitch.get_games(game_ids=game_id)
@@ -65,8 +66,11 @@ def get_urls(twitch, start, end, b_id, pagination=None):
             game_ids[game_id] = game
         c_title = " ".join(clip["title"].split("/"))
         title = clip["created_at"] + " _ " + game + " _ " + c_title
-        title += " _ " + clip["creator_name"] + " _ " + clip["id"]
-        clips_list.append([title, clip_url])
+        title += " _ " + creator + " _ " + clip["id"]
+        if clipper and clipper.lower() != creator.lower():
+            pass
+        else:
+            clips_list.append([title, clip_url])
 
     cursor = clips["pagination"].get("cursor", "DONE")
 
@@ -110,6 +114,10 @@ if __name__ == "__main__":
                         help="store clips locally (only necessary " +
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
+    parser.add_argument("--clipper",
+                        help="only download clips made by this person",
+                        metavar="username",
+                        type=str)
     args = parser.parse_args()
 
     filepath = realpath(__file__)
@@ -204,7 +212,8 @@ if __name__ == "__main__":
                                             start=start,
                                             end=start + timedelta(days=1),
                                             b_id=b_id,
-                                            pagination=pagination)
+                                            pagination=pagination,
+                                            clipper=args.clipper)
             all_urls += new_urls
             print(f"Clips created on {datestring}: " + str(len(all_urls)),
                   end="\r")
