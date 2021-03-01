@@ -45,7 +45,7 @@ def get_gdrive_files(credentials, clips, staging):
     return files, staging_folder, drive
 
 
-def get_urls(twitch, start, end, b_id, pagination=None, clipper=None):
+def get_urls(twitch, start, end, b_id, pagination=None, clipper=None, category=None):
     clips_list = []
     global game_ids
 
@@ -70,6 +70,8 @@ def get_urls(twitch, start, end, b_id, pagination=None, clipper=None):
         title = clip["created_at"] + " _ " + game + " _ " + c_title
         title += " _ " + creator + " _ " + clip["id"]
         if clipper and clipper.lower() != creator.lower():
+            pass
+        elif category and category.lower() != game.lower():
             pass
         else:
             clips_list.append([title, clip_url])
@@ -119,6 +121,13 @@ if __name__ == "__main__":
     parser.add_argument("--clipper",
                         help="only download clips made by this person",
                         metavar="username",
+                        type=str)
+    parser.add_argument("--category",
+                        help="only download clips from this category/game " +
+                        "(some non-game categories like don't get " +
+                        "reported by the API, so type \"NOGAME\" " +
+                        "for these if you notice they're missing)",
+                        metavar="game",
                         type=str)
     args = parser.parse_args()
 
@@ -216,7 +225,8 @@ if __name__ == "__main__":
                                             end=start + timedelta(days=1),
                                             b_id=b_id,
                                             pagination=pagination,
-                                            clipper=args.clipper)
+                                            clipper=args.clipper,
+                                            category=args.category)
             all_urls += new_urls
             print(f"Clips created on {datestring}: " + str(len(all_urls)),
                   end="\r")
