@@ -125,7 +125,7 @@ if __name__ == "__main__":
     filepath = realpath(__file__)
     filedir = "/".join(filepath.split("/")[:-1]) + "/"
 
-    gdrive_credentials = filedir + "credentials.txt"
+    gdrive_credentials = pjoin(filedir, "credentials.txt")
 
     if isfile(gdrive_credentials) and not args.local:
         files, staging_folder, drive = get_gdrive_files(gdrive_credentials,
@@ -143,7 +143,8 @@ if __name__ == "__main__":
         parser.error("No --staging_dir directory specified")
 
     try:
-        with open("apis.json") as apis_file:
+        apis = pjoin(filedir, "apis.json")
+        with open(apis) as apis_file:
             apis = json.load(apis_file)
             t_id = apis["t_id"]
             t_t = apis["t_t"]
