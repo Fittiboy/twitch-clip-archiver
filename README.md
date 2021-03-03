@@ -21,6 +21,7 @@ and run this chain of commands:
 Now you can follow the instructions below.
 
 ## How to use?
+0. (Install [Python](https://www.python.org/downloads/))
 1. Clone repo `git clone https://github.com/Fittiboy/twitch-clip-archiver`
 2. Navigate into cloned directory `cd twitch-clip-archiver`
 3. Installed required packages `pip install -r requirements.txt`
