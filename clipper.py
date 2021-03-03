@@ -45,7 +45,9 @@ def get_gdrive_files(credentials, clips, staging):
     return files, staging_folder, drive
 
 
-def get_urls(twitch, start, end, b_id, pagination=None, clipper=None, category=None):
+def get_urls(twitch, start, end, b_id, pagination=None,
+             clipper=None, category=None):
+
     clips_list = []
     global game_ids
 
@@ -137,9 +139,13 @@ if __name__ == "__main__":
     gdrive_credentials = pjoin(filedir, "credentials.txt")
 
     if isfile(gdrive_credentials) and not args.local:
-        files, staging_folder, drive = get_gdrive_files(gdrive_credentials,
-                                                        args.clips_dir,
-                                                        args.staging_dir)
+        try:
+            files, staging_folder, drive = get_gdrive_files(gdrive_credentials,
+                                                            args.clips_dir,
+                                                            args.staging_dir)
+        except UnboundLocalError:
+            raise Exception("Staging directory not specified! Please set " +
+                            "--staging_dir")
         gdrive = True
     elif args.local:
         print("Storing files locally.\n")
