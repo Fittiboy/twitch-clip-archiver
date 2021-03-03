@@ -1,3 +1,5 @@
+Feel free to [donate](https://tippin.me/@Fittiboy) :)
+
 ## (Prologue: Using the utility in Windows)
 *(The tool now works fine in Windows, though the filenames will be missing a lot of special characters!)*  
 
