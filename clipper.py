@@ -37,7 +37,9 @@ def get_gdrive_files(credentials, clips, staging):
             id1 = item['id']
             to_search += drive.ListFile({'q': f"'{id1}' in parents"}).GetList()
         else:
-            files.append(item['title'])
+            clip_title = item['title']
+            clip_id = clip_title.split(" _ ")[-1]
+            files.append(clip_id)
             print("Total files found on Google Drive: " + str(len(files)),
                   end="\r")
 
@@ -246,11 +248,12 @@ if __name__ == "__main__":
             if not isdir(base_path):
                 makedirs(base_path, exist_ok=True)
             file_name = url[0]
+            clip_id = file_name.split(" _ ")[-1]
             if sys.platform.startswith("win"):
                 file_name = file_name.strip().replace(" ", "_")
                 file_name = re.sub(r'(?u)[^-\w.]', "", file_name)
             fullpath = pjoin(base_path, file_name)
-            if gdrive and file_name in files:
+            if gdrive and clip_id in files:
                 continue
             elif isfile(fullpath) and not gdrive:
                 continue
