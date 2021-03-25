@@ -240,15 +240,15 @@ if __name__ == "__main__":
                   end="\r")
 
         print(f"Clips created on {datestring}: " + str(len(all_urls)))
+        base_path = pjoin(filedir, "clips", args.streamer)
+        if not isdir(base_path):
+            makedirs(base_path, exist_ok=True)
+        exist_clips = listdir(base_path)
+        exist_ids = [filename.split(" _ ")[-1] for filename in exist_clips]
 
         for url in all_urls:
             total += 1
             dl_url = url[1]
-            base_path = pjoin(filedir, "clips", args.streamer)
-            if not isdir(base_path):
-                makedirs(base_path, exist_ok=True)
-            exist_clips = listdir(base_path)
-            exist_ids = [filename.split(" _ ")[-1] for filename in exist_clips]
             file_name = url[0]
             clip_id = file_name.split(" _ ")[-1]
             if sys.platform.startswith("win"):
