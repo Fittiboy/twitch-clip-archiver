@@ -7,7 +7,7 @@ import urllib.request as dl
 import sys
 from os.path import isfile, isdir, realpath
 from os.path import join as pjoin
-from os import remove, makedirs
+from os import remove, makedirs, listdir
 from datetime import datetime, timedelta
 from argparse import ArgumentParser
 
@@ -247,6 +247,8 @@ if __name__ == "__main__":
             base_path = pjoin(filedir, "clips", args.streamer)
             if not isdir(base_path):
                 makedirs(base_path, exist_ok=True)
+            exist_clips = listdir(base_path)
+            exist_ids = [filename.split(" _ ")[-1] for filename in exist_clips]
             file_name = url[0]
             clip_id = file_name.split(" _ ")[-1]
             if sys.platform.startswith("win"):
@@ -255,7 +257,7 @@ if __name__ == "__main__":
             fullpath = pjoin(base_path, file_name)
             if gdrive and clip_id in files:
                 continue
-            elif isfile(fullpath) and not gdrive:
+            elif clip_id in exist_ids and not gdrive:
                 continue
             try:
                 print(str(total) + "/" + str(len(all_urls)) + "\t" +
