@@ -5,7 +5,7 @@ import re
 import json
 import urllib.request as dl
 import sys
-from os.path import isfile, isdir, realpath
+from os.path import isfile, isdir, realpath, basename
 from os.path import join as pjoin
 from os import remove, makedirs, listdir
 from datetime import datetime, timedelta
@@ -136,7 +136,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     filepath = realpath(__file__)
-    filedir = "/".join(filepath.split("/")[:-1]) + "/"
+    filename = basename(filepath)
+    filedir = filepath[:-len(filename)]
 
     gdrive_credentials = pjoin(filedir, "credentials.txt")
 
