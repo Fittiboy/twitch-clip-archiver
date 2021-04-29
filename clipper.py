@@ -250,7 +250,7 @@ if __name__ == "__main__":
         for url in all_urls:
             total += 1
             dl_url = url[1]
-            file_name = url[0]
+            file_name = url[0] + ".mp4"
             clip_id = file_name.split(" _ ")[-1]
             if sys.platform.startswith("win"):
                 file_name = file_name.strip().replace(" ", "_")
