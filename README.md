@@ -1,4 +1,4 @@
-Feel free to [donate](https://tippin.me/@Fittiboy) :)
+Feel free to [donate](https://fitti.io/tips) (Bitcoin only, via [lightning](https://www.lopp.net/lightning-information.html)) :)
 
 ## (Prologue: Using the utility in Windows)
 *(The tool now works fine in Windows, though the filenames will be missing a lot of special characters!)*  
