@@ -13,7 +13,7 @@ by installing a Linux distribution *inside* of your Windows installation. (Shock
 4. Hit OK and reboot
 5. Open the Microsoft Store from the start menu and install Ubuntu LTS 20.04
 6. Launch Ubuntu, and wait for it to fully install
-7. Create a username and password when prompted (it will look like nothing is happening when typing your password, thuogh this is intentional!)
+7. Create a username and password when prompted (it will look like nothing is happening when typing your password, this is an intentional security feature!)
 
 Congratulations! You now have Linux running inside Windows!
 Now simply [paste](https://devblogs.microsoft.com/commandline/copy-and-paste-arrives-for-linuxwsl-consoles/)
