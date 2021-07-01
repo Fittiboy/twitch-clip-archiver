@@ -133,6 +133,12 @@ if __name__ == "__main__":
                         "for these if you notice they're missing)",
                         metavar="game",
                         type=str)
+    parser.add_argument("--regex",
+                        help="only download clips matching the regular "
+                        "expression given"
+                        "(See https://docs.python.org/3/library/re.html)",
+                        metavar="search term",
+                        type=str)
     args = parser.parse_args()
 
     filepath = realpath(__file__)
