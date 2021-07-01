@@ -153,6 +153,11 @@ if __name__ == "__main__":
                         help="if regex is provided, setting this flag will "
                         "make the regular expression case-insensitive.",
                         action="store_true")
+    parser.add_argument("-d", "--dual",
+                        help="if storing in Google Drive, setting this flag"
+                        " will store clips both on Google Drive as well as "
+                        "locally",
+                        action="store_true")
     args = parser.parse_args()
 
     filepath = realpath(__file__)
