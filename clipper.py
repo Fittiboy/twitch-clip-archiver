@@ -48,10 +48,12 @@ def get_gdrive_files(credentials, clips, staging):
 
 
 def get_urls(twitch, start, end, b_id, pagination=None,
-             clipper=None, category=None, regex=None,
+             clippers=None, categories=None, regex=None,
              flags=[]):
 
     clips_list = []
+    clippers = [clipper.lower() for clipper in clippers]
+    categories = [category.lower() for category in categories]
     global game_ids
 
     clips = twitch.get_clips(broadcaster_id=b_id, first=100,
@@ -75,8 +77,8 @@ def get_urls(twitch, start, end, b_id, pagination=None,
         title = clip["created_at"] + " _ " + game + " _ " + c_title
         title += " _ " + creator + " _ " + clip["id"]
         if (
-                (clipper and clipper.lower() != creator.lower()) or
-                (category and category.lower() != game.lower()) or
+                (clippers and creator.lower() not in clippers) or
+                (categories and game.lower() not in categories) or
                 (regex and not re.search(regex, c_title, *flags))
            ):
             pass
@@ -195,26 +197,30 @@ if __name__ == "__main__":
         raise FileNotFoundError(e_msg)
 
     game_ids = {}
+    b_ids = []
+    start = None
 
     twitch = Twitch(t_id, t_t)
     twitch.authenticate_app([])
-    try:
-        streamer = twitch.get_users(logins=args.streamer)["data"][0]
-    except IndexError:
-        raise Exception("Streamer not found!")
-    b_id = streamer["id"]
+    for streamer in args.streamers:
+        try:
+            streamer = twitch.get_users(logins=args.streamer)["data"][0]
+            year, month, day = streamer["created_at"].split("-")
+            day = day.split("T")[0]
+            new_start = datetime(*map(int, [year, month, day]))
+            if not start or new_start < start:
+                start = new_start
+        except IndexError:
+            raise Exception("Streamer not found: " + streamer)
+        b_ids.append(streamer["id"])
 
     if args.start_date:
         try:
             year, month, day = [int(num) for num in args.start_date.split("/")]
+            start = datetime(year, month, day)
         except Exception:
             raise Exception("Please provice a correct start date in the " +
                             "format YYYY/MM/DD")
-    else:
-        year, month, day = streamer["created_at"].split("-")
-        day = day.split("T")[0]
-        year, month, day = [int(num) for num in [year, month, day]]
-    start = datetime(year, month, day)
 
     if args.end_date:
         try:
@@ -248,10 +254,10 @@ if __name__ == "__main__":
             new_urls, pagination = get_urls(twitch=twitch,
                                             start=start,
                                             end=start + timedelta(days=1),
-                                            b_id=b_id,
+                                            b_ids=b_ids,
                                             pagination=pagination,
-                                            clipper=args.clipper,
-                                            category=args.category,
+                                            clipper=args.clippers,
+                                            category=args.categories,
                                             regex=args.regex,
                                             flags=[re.I] if
                                             args.case_insensitive else [])
