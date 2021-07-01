@@ -309,6 +309,8 @@ if __name__ == "__main__":
                         remove(fullpath)
                     sys.exit("Exiting...")
                 except Exception as e:
+                    if isfile(fullpath):
+                        remove(fullpath)
                     failed += 1
                     print(e)
                     if not isfile(base_path + "failed.txt"):
