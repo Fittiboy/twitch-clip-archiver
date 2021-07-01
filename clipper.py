@@ -153,6 +153,11 @@ if __name__ == "__main__":
                         help="if regex is provided, setting this flag will "
                         "make the regular expression case-insensitive",
                         action="store_true")
+    parser.add_argument("-d", "--dual",
+                        help="if storing in Google Drive, setting this flag"
+                        " will store clips both on Google Drive as well as "
+                        "locally",
+                        action="store_true")
     args = parser.parse_args()
 
     filepath = realpath(__file__)
@@ -179,6 +184,8 @@ if __name__ == "__main__":
         gdrive = False
     if gdrive and not args.staging_dir:
         parser.error("No --staging_dir directory specified")
+    if args.dual and not gdrive:
+        parser.error("Can't use --dual mode without Google Drive credentials")
 
     try:
         apis = pjoin(filedir, "apis.json")
@@ -279,6 +286,9 @@ if __name__ == "__main__":
 
             for url in all_urls:
                 total += 1
+                download = True
+                delete = False
+                upload = False
                 dl_url = url[1]
                 file_name = url[0] + ".mp4"
                 clip_id = file_name.split(" _ ")[-1]
@@ -286,23 +296,42 @@ if __name__ == "__main__":
                     file_name = file_name.strip().replace(" ", "_")
                     file_name = re.sub(r'(?u)[^-\w.]', "", file_name)
                 fullpath = pjoin(base_path, file_name)
-                if gdrive and clip_id in files:
+                if (
+                        (clip_id in exist_ids and not gdrive) or
+                        (not args.dual and clip_id in files) or
+                        (clip_id in exist_ids and clip_id in files)
+                   ):
                     continue
-                elif clip_id in exist_ids and not gdrive:
-                    continue
+                elif (
+                        clip_id in exist_ids and
+                        clip_id not in files and
+                        gdrive
+                     ):
+                    download = False
+                    upload = True
+                elif (
+                        clip_id not in exist_ids and
+                        clip_id not in files and
+                        gdrive
+                     ):
+                    upload = True
+                    if not args.dual:
+                        delete = True
                 try:
                     print(str(total) + "/" + str(len(all_urls)) + "\t" +
                           fullpath)
-                    dl.urlretrieve(dl_url, fullpath,
-                                   reporthook=dl_progress)
-                    if gdrive:
+                    if download:
+                        dl.urlretrieve(dl_url, fullpath,
+                                       reporthook=dl_progress)
+                    if upload:
                         upload = drive.CreateFile({'title': file_name,
                                                   'parents': [{
                                                           'id': staging_folder
                                                           }]})
                         upload.SetContentFile(fullpath)
                         upload.Upload()
-                        remove(fullpath)
+                        if delete:
+                            remove(fullpath)
                     print()
                 except KeyboardInterrupt:
                     if isfile(fullpath):
