@@ -198,6 +198,7 @@ if __name__ == "__main__":
         Include the quotation marks and curly brackets!"""
         raise FileNotFoundError(e_msg)
 
+    failed = 0
     game_ids = {}
     b_ids = {}
     start = None
@@ -303,7 +304,14 @@ if __name__ == "__main__":
                         upload.Upload()
                         remove(fullpath)
                     print()
+                except KeyboardInterrupt:
+                    if isfile(fullpath):
+                        remove(fullpath)
+                    sys.exit("Exiting...")
                 except Exception as e:
+                    if isfile(fullpath):
+                        remove(fullpath)
+                    failed += 1
                     print(e)
                     if not isfile(base_path + "failed.txt"):
                         with open("failed.txt", "w"):
@@ -313,3 +321,7 @@ if __name__ == "__main__":
                     print(file_name + ": FAILED!")
 
         start += timedelta(days=1)
+
+    if failed:
+        print(f"\n{str(failed)} clips not downloaded!"
+              " Check failed.txt and try downloading them manually.")
