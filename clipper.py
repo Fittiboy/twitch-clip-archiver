@@ -48,10 +48,14 @@ def get_gdrive_files(credentials, clips, staging):
 
 
 def get_urls(twitch, start, end, b_id, pagination=None,
-             clipper=None, category=None, regex=None,
+             clippers=None, categories=None, regex=None,
              flags=[]):
 
     clips_list = []
+    clippers = [clipper.lower() for clipper in clippers] if clippers else None
+    categories = [
+        category.lower() for category in categories
+        ] if categories else None
     global game_ids
 
     clips = twitch.get_clips(broadcaster_id=b_id, first=100,
@@ -75,8 +79,8 @@ def get_urls(twitch, start, end, b_id, pagination=None,
         title = clip["created_at"] + " _ " + game + " _ " + c_title
         title += " _ " + creator + " _ " + clip["id"]
         if (
-                (clipper and clipper.lower() != creator.lower()) or
-                (category and category.lower() != game.lower()) or
+                (clippers and creator.lower() not in clippers) or
+                (categories and game.lower() not in categories) or
                 (regex and not re.search(regex, c_title, *flags))
            ):
             pass
@@ -96,8 +100,9 @@ def dl_progress(count, block_size, total_size):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("streamer",
-                        help="name of the streamer to pull clips from",
+    parser.add_argument("streamers",
+                        help="names of the streamers to pull clips from",
+                        nargs="+",
                         type=str)
     parser.add_argument("--start_date",
                         help="first day to start looking "
@@ -125,16 +130,18 @@ if __name__ == "__main__":
                         help="store clips locally (only necessary "
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
-    parser.add_argument("--clipper",
-                        help="only download clips made by this person",
-                        metavar="username",
+    parser.add_argument("--clippers",
+                        help="only download clips made by these accounts",
+                        metavar="usernames",
+                        nargs="*",
                         type=str)
-    parser.add_argument("--category",
-                        help="only download clips from this category/game "
+    parser.add_argument("--categories",
+                        help="only download clips from these categorys/games "
                         "(some non-game categories like Just Chatting "
                         "don't get reported by the API, type \"NOGAME\" "
                         "for these if you notice they're missing)",
-                        metavar="game",
+                        metavar="games",
+                        nargs="*",
                         type=str)
     parser.add_argument("--regex",
                         help="only download clips matching the regular "
@@ -192,26 +199,30 @@ if __name__ == "__main__":
         raise FileNotFoundError(e_msg)
 
     game_ids = {}
+    b_ids = {}
+    start = None
 
     twitch = Twitch(t_id, t_t)
     twitch.authenticate_app([])
-    try:
-        streamer = twitch.get_users(logins=args.streamer)["data"][0]
-    except IndexError:
-        raise Exception("Streamer not found!")
-    b_id = streamer["id"]
+    for streamer in args.streamers:
+        try:
+            _streamer = twitch.get_users(logins=streamer)["data"][0]
+            year, month, day = _streamer["created_at"].split("-")
+            day = day.split("T")[0]
+            new_start = datetime(*map(int, [year, month, day]))
+            if not start or new_start < start:
+                start = new_start
+        except IndexError:
+            raise Exception("Streamer not found: " + streamer)
+        b_ids[streamer] = _streamer["id"]
 
     if args.start_date:
         try:
             year, month, day = [int(num) for num in args.start_date.split("/")]
+            start = datetime(year, month, day)
         except Exception:
             raise Exception("Please provice a correct start date in the " +
                             "format YYYY/MM/DD")
-    else:
-        year, month, day = streamer["created_at"].split("-")
-        day = day.split("T")[0]
-        year, month, day = [int(num) for num in [year, month, day]]
-    start = datetime(year, month, day)
 
     if args.end_date:
         try:
@@ -235,68 +246,70 @@ if __name__ == "__main__":
                   "same settings.")
             break
 
-        all_urls = []
-        pagination = None
-        total = 0
-        datestring = start.strftime("%a, %Y/%B/%d")
+        for streamer, b_id in b_ids.items():
+            print(f"\n\tStreamer: {streamer}\n")
+            total = 0
+            pagination = None
+            all_urls = []
+            datestring = start.strftime("%a, %Y/%B/%d")
 
-        while pagination != "DONE":
-            last_pagination = pagination
-            new_urls, pagination = get_urls(twitch=twitch,
-                                            start=start,
-                                            end=start + timedelta(days=1),
-                                            b_id=b_id,
-                                            pagination=pagination,
-                                            clipper=args.clipper,
-                                            category=args.category,
-                                            regex=args.regex,
-                                            flags=[re.I] if
-                                            args.case_insensitive else [])
-            all_urls += new_urls
-            print(f"Clips created on {datestring}: " + str(len(all_urls)),
-                  end="\r")
+            while pagination != "DONE":
+                last_pagination = pagination
+                new_urls, pagination = get_urls(twitch=twitch,
+                                                start=start,
+                                                end=start + timedelta(days=1),
+                                                b_id=b_id,
+                                                pagination=pagination,
+                                                clippers=args.clippers,
+                                                categories=args.categories,
+                                                regex=args.regex,
+                                                flags=[re.I] if
+                                                args.case_insensitive else [])
+                all_urls += new_urls
+                print(f"Clips created on {datestring}: " + str(len(all_urls)),
+                      end="\r")
 
-        print(f"Clips created on {datestring}: " + str(len(all_urls)))
-        base_path = pjoin(filedir, "clips", args.streamer)
-        if not isdir(base_path):
-            makedirs(base_path, exist_ok=True)
-        exist_clips = listdir(base_path)
-        exist_ids = [filename.split(" _ ")[-1] for filename in exist_clips]
+            print(f"Clips created on {datestring}: " + str(len(all_urls)))
+            base_path = pjoin(filedir, "clips", streamer)
+            if not isdir(base_path):
+                makedirs(base_path, exist_ok=True)
+            exist_clips = listdir(base_path)
+            exist_ids = [filename.split(" _ ")[-1] for filename in exist_clips]
 
-        for url in all_urls:
-            total += 1
-            dl_url = url[1]
-            file_name = url[0] + ".mp4"
-            clip_id = file_name.split(" _ ")[-1]
-            if sys.platform.startswith("win"):
-                file_name = file_name.strip().replace(" ", "_")
-                file_name = re.sub(r'(?u)[^-\w.]', "", file_name)
-            fullpath = pjoin(base_path, file_name)
-            if gdrive and clip_id in files:
-                continue
-            elif clip_id in exist_ids and not gdrive:
-                continue
-            try:
-                print(str(total) + "/" + str(len(all_urls)) + "\t" +
-                      fullpath)
-                dl.urlretrieve(dl_url, fullpath,
-                               reporthook=dl_progress)
-                if gdrive:
-                    upload = drive.CreateFile({'title': file_name,
-                                              'parents': [{
-                                                      'id': staging_folder
-                                                      }]})
-                    upload.SetContentFile(fullpath)
-                    upload.Upload()
-                    remove(fullpath)
-                print()
-            except Exception as e:
-                print(e)
-                if not isfile(base_path + "failed.txt"):
-                    with open("failed.txt", "w"):
-                        pass
-                with open("failed.txt", "a") as failed_file:
-                    failed_file.write(url[0] + " - " + url[1])
-                print(file_name + ": FAILED!")
+            for url in all_urls:
+                total += 1
+                dl_url = url[1]
+                file_name = url[0] + ".mp4"
+                clip_id = file_name.split(" _ ")[-1]
+                if sys.platform.startswith("win"):
+                    file_name = file_name.strip().replace(" ", "_")
+                    file_name = re.sub(r'(?u)[^-\w.]', "", file_name)
+                fullpath = pjoin(base_path, file_name)
+                if gdrive and clip_id in files:
+                    continue
+                elif clip_id in exist_ids and not gdrive:
+                    continue
+                try:
+                    print(str(total) + "/" + str(len(all_urls)) + "\t" +
+                          fullpath)
+                    dl.urlretrieve(dl_url, fullpath,
+                                   reporthook=dl_progress)
+                    if gdrive:
+                        upload = drive.CreateFile({'title': file_name,
+                                                  'parents': [{
+                                                          'id': staging_folder
+                                                          }]})
+                        upload.SetContentFile(fullpath)
+                        upload.Upload()
+                        remove(fullpath)
+                    print()
+                except Exception as e:
+                    print(e)
+                    if not isfile(base_path + "failed.txt"):
+                        with open("failed.txt", "w"):
+                            pass
+                    with open("failed.txt", "a") as failed_file:
+                        failed_file.write(url[0] + " - " + url[1])
+                    print(file_name + ": FAILED!")
 
         start += timedelta(days=1)
