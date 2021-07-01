@@ -128,7 +128,7 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("--clippers",
                         help="only download clips made by these accounts",
-                        metavar="username",
+                        metavar="usernames",
                         nargs="*",
                         type=str)
     parser.add_argument("--categories",
