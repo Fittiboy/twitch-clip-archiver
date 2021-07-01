@@ -96,8 +96,9 @@ def dl_progress(count, block_size, total_size):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("streamer",
-                        help="name of the streamer to pull clips from",
+    parser.add_argument("streamers",
+                        help="names of the streamers to pull clips from",
+                        nargs="+",
                         type=str)
     parser.add_argument("--start_date",
                         help="first day to start looking "
@@ -125,16 +126,18 @@ if __name__ == "__main__":
                         help="store clips locally (only necessary "
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
-    parser.add_argument("--clipper",
-                        help="only download clips made by this person",
+    parser.add_argument("--clippers",
+                        help="only download clips made by these accounts",
                         metavar="username",
+                        nargs="*",
                         type=str)
-    parser.add_argument("--category",
-                        help="only download clips from this category/game "
+    parser.add_argument("--categories",
+                        help="only download clips from these categorys/games "
                         "(some non-game categories like Just Chatting "
                         "don't get reported by the API, type \"NOGAME\" "
                         "for these if you notice they're missing)",
-                        metavar="game",
+                        metavar="games",
+                        nargs="*",
                         type=str)
     parser.add_argument("--regex",
                         help="only download clips matching the regular "
