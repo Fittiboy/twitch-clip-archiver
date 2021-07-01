@@ -184,6 +184,8 @@ if __name__ == "__main__":
         gdrive = False
     if gdrive and not args.staging_dir:
         parser.error("No --staging_dir directory specified")
+    if args.dual and not gdrive:
+        parser.error("Can't use --dual mode without Google Drive credentials")
 
     try:
         apis = pjoin(filedir, "apis.json")
