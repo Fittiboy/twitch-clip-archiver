@@ -48,7 +48,8 @@ def get_gdrive_files(credentials, clips, staging):
 
 
 def get_urls(twitch, start, end, b_id, pagination=None,
-             clipper=None, category=None):
+             clipper=None, category=None, regex=None,
+             flags=[]):
 
     clips_list = []
     global game_ids
@@ -73,9 +74,11 @@ def get_urls(twitch, start, end, b_id, pagination=None,
         c_title = " ".join(clip["title"].split("/"))
         title = clip["created_at"] + " _ " + game + " _ " + c_title
         title += " _ " + creator + " _ " + clip["id"]
-        if clipper and clipper.lower() != creator.lower():
-            pass
-        elif category and category.lower() != game.lower():
+        if (
+                (clipper and clipper.lower() != creator.lower()) or
+                (category and category.lower() != game.lower()) or
+                (regex and not re.search(regex, c_title, *flags))
+           ):
             pass
         else:
             clips_list.append([title, clip_url])
@@ -135,10 +138,14 @@ if __name__ == "__main__":
                         type=str)
     parser.add_argument("--regex",
                         help="only download clips matching the regular "
-                        "expression given"
+                        "expression given "
                         "(See https://docs.python.org/3/library/re.html)",
                         metavar="search term",
                         type=str)
+    parser.add_argument("-c", "--case_insensitive",
+                        help="if regex is provided, setting this flag will "
+                        "make the regular expression case-insensitive.",
+                        action="store_true")
     args = parser.parse_args()
 
     filepath = realpath(__file__)
@@ -241,7 +248,10 @@ if __name__ == "__main__":
                                             b_id=b_id,
                                             pagination=pagination,
                                             clipper=args.clipper,
-                                            category=args.category)
+                                            category=args.category,
+                                            regex=args.regex,
+                                            flags=[re.I] if
+                                            args.case_insensitive else [])
             all_urls += new_urls
             print(f"Clips created on {datestring}: " + str(len(all_urls)),
                   end="\r")
