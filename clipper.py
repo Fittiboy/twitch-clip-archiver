@@ -151,7 +151,7 @@ if __name__ == "__main__":
                         type=str)
     parser.add_argument("-c", "--case_insensitive",
                         help="if regex is provided, setting this flag will "
-                        "make the regular expression case-insensitive.",
+                        "make the regular expression case-insensitive",
                         action="store_true")
     parser.add_argument("-d", "--dual",
                         help="if storing in Google Drive, setting this flag"
