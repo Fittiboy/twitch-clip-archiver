@@ -304,9 +304,10 @@ if __name__ == "__main__":
                         upload.Upload()
                         remove(fullpath)
                     print()
-                except KeyboardInterrupt as e:
-                    remove(fullpath)
-                    raise e
+                except KeyboardInterrupt:
+                    if isfile(fullpath):
+                        remove(fullpath)
+                    sys.exit("Exiting...")
                 except Exception as e:
                     failed += 1
                     print(e)
