@@ -48,7 +48,8 @@ def get_gdrive_files(credentials, clips, staging):
 
 
 def get_urls(twitch, start, end, b_id, pagination=None,
-             clipper=None, category=None):
+             clipper=None, category=None, regex=None,
+             flags=[]):
 
     clips_list = []
     global game_ids
@@ -73,9 +74,11 @@ def get_urls(twitch, start, end, b_id, pagination=None,
         c_title = " ".join(clip["title"].split("/"))
         title = clip["created_at"] + " _ " + game + " _ " + c_title
         title += " _ " + creator + " _ " + clip["id"]
-        if clipper and clipper.lower() != creator.lower():
-            pass
-        elif category and category.lower() != game.lower():
+        if (
+                (clipper and clipper.lower() != creator.lower()) or
+                (category and category.lower() != game.lower()) or
+                (regex and not re.search(regex, c_title, *flags))
+           ):
             pass
         else:
             clips_list.append([title, clip_url])
@@ -97,29 +100,29 @@ if __name__ == "__main__":
                         help="name of the streamer to pull clips from",
                         type=str)
     parser.add_argument("--start_date",
-                        help="first day to start looking " +
-                        "for clips (default: day the streamer's account was " +
+                        help="first day to start looking "
+                        "for clips (default: day the streamer's account was "
                         "created)",
                         metavar="YYYY/MM/DD",
                         type=str)
     parser.add_argument("--end_date",
-                        help="last day to look for clips" +
+                        help="last day to look for clips"
                         " (default: current day)",
                         metavar="YYYY/MM/DD",
                         type=str)
     parser.add_argument("--clips_dir",
-                        help="directory to check for already" +
+                        help="directory to check for already"
                         " uploaded clips in Google Drive (must be in root)",
                         metavar="directory",
                         type=str)
     parser.add_argument("--staging_dir",
-                        help="staging directory to upload new " +
-                        "clips to in Google Drive (must be in root, included" +
+                        help="staging directory to upload new "
+                        "clips to in Google Drive (must be in root, included"
                         " in search for already uploaded clips)",
                         metavar="directory",
                         type=str)
     parser.add_argument("--local",
-                        help="store clips locally (only necessary " +
+                        help="store clips locally (only necessary "
                         "if credentials.txt for Google Drive is present)",
                         action="store_true")
     parser.add_argument("--clipper",
@@ -127,12 +130,22 @@ if __name__ == "__main__":
                         metavar="username",
                         type=str)
     parser.add_argument("--category",
-                        help="only download clips from this category/game " +
-                        "(some non-game categories like don't get " +
-                        "reported by the API, so type \"NOGAME\" " +
+                        help="only download clips from this category/game "
+                        "(some non-game categories like Just Chatting "
+                        "don't get reported by the API, type \"NOGAME\" "
                         "for these if you notice they're missing)",
                         metavar="game",
                         type=str)
+    parser.add_argument("--regex",
+                        help="only download clips matching the regular "
+                        "expression given "
+                        "(see https://docs.python.org/3/library/re.html)",
+                        metavar="search term",
+                        type=str)
+    parser.add_argument("-c", "--case_insensitive",
+                        help="if regex is provided, setting this flag will "
+                        "make the regular expression case-insensitive.",
+                        action="store_true")
     args = parser.parse_args()
 
     filepath = realpath(__file__)
@@ -235,7 +248,10 @@ if __name__ == "__main__":
                                             b_id=b_id,
                                             pagination=pagination,
                                             clipper=args.clipper,
-                                            category=args.category)
+                                            category=args.category,
+                                            regex=args.regex,
+                                            flags=[re.I] if
+                                            args.case_insensitive else [])
             all_urls += new_urls
             print(f"Clips created on {datestring}: " + str(len(all_urls)),
                   end="\r")
