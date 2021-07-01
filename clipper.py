@@ -139,7 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("--regex",
                         help="only download clips matching the regular "
                         "expression given "
-                        "(See https://docs.python.org/3/library/re.html)",
+                        "(see https://docs.python.org/3/library/re.html)",
                         metavar="search term",
                         type=str)
     parser.add_argument("-c", "--case_insensitive",
