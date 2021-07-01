@@ -167,8 +167,8 @@ if __name__ == "__main__":
                                                             args.clips_dir,
                                                             args.staging_dir)
         except UnboundLocalError:
-            raise Exception("Staging directory not specified! Please set " +
-                            "--staging_dir")
+            parser.error("Staging directory not specified! Please set " +
+                         "--staging_dir")
         gdrive = True
     elif args.local:
         print("Storing files locally.\n")
