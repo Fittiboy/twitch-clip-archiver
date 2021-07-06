@@ -47,19 +47,26 @@ def get_gdrive_files(credentials, clips, staging):
     return files, staging_folder, drive
 
 
-def get_urls(twitch, start, end, b_id, pagination=None,
-             clippers=None, categories=None, regex=None,
+def get_urls(twitch,
+             start,
+             end,
+             b_id,
+             pagination=None,
+             clippers=None,
+             categories=None,
+             regex=None,
              flags=[]):
 
     clips_list = []
     clippers = [clipper.lower() for clipper in clippers] if clippers else None
-    categories = [
-        category.lower() for category in categories
-        ] if categories else None
+    categories = [category.lower()
+                  for category in categories] if categories else None
     global game_ids
 
-    clips = twitch.get_clips(broadcaster_id=b_id, first=100,
-                             after=pagination, started_at=start,
+    clips = twitch.get_clips(broadcaster_id=b_id,
+                             first=100,
+                             after=pagination,
+                             started_at=start,
                              ended_at=end)
     for clip in clips["data"]:
         thumb_url = clip["thumbnail_url"]
@@ -78,11 +85,9 @@ def get_urls(twitch, start, end, b_id, pagination=None,
         c_title = " ".join(clip["title"].split("/"))
         title = clip["created_at"] + " _ " + game + " _ " + c_title
         title += " _ " + creator + " _ " + clip["id"]
-        if (
-                (clippers and creator.lower() not in clippers) or
-                (categories and game.lower() not in categories) or
-                (regex and not re.search(regex, c_title, *flags))
-           ):
+        if ((clippers and creator.lower() not in clippers)
+                or (categories and game.lower() not in categories)
+                or (regex and not re.search(regex, c_title, *flags))):
             pass
         else:
             clips_list.append([title, clip_url])
@@ -149,11 +154,13 @@ if __name__ == "__main__":
                         "(see https://docs.python.org/3/library/re.html)",
                         metavar="search term",
                         type=str)
-    parser.add_argument("-c", "--case_insensitive",
+    parser.add_argument("-c",
+                        "--case_insensitive",
                         help="if regex is provided, setting this flag will "
                         "make the regular expression case-insensitive",
                         action="store_true")
-    parser.add_argument("-d", "--dual",
+    parser.add_argument("-d",
+                        "--dual",
                         help="if storing in Google Drive, setting this flag"
                         " will store clips both on Google Drive as well as "
                         "locally",
@@ -168,9 +175,8 @@ if __name__ == "__main__":
 
     if isfile(gdrive_credentials) and not args.local:
         try:
-            files, staging_folder, drive = get_gdrive_files(gdrive_credentials,
-                                                            args.clips_dir,
-                                                            args.staging_dir)
+            files, staging_folder, drive = get_gdrive_files(
+                gdrive_credentials, args.clips_dir, args.staging_dir)
         except UnboundLocalError:
             parser.error("Staging directory not specified! Please set " +
                          "--staging_dir")
@@ -263,16 +269,16 @@ if __name__ == "__main__":
 
             while pagination != "DONE":
                 last_pagination = pagination
-                new_urls, pagination = get_urls(twitch=twitch,
-                                                start=start,
-                                                end=start + timedelta(days=1),
-                                                b_id=b_id,
-                                                pagination=pagination,
-                                                clippers=args.clippers,
-                                                categories=args.categories,
-                                                regex=args.regex,
-                                                flags=[re.I] if
-                                                args.case_insensitive else [])
+                new_urls, pagination = get_urls(
+                    twitch=twitch,
+                    start=start,
+                    end=start + timedelta(days=1),
+                    b_id=b_id,
+                    pagination=pagination,
+                    clippers=args.clippers,
+                    categories=args.categories,
+                    regex=args.regex,
+                    flags=[re.I] if args.case_insensitive else [])
                 all_urls += new_urls
                 print(f"Clips created on {datestring}: " + str(len(all_urls)),
                       end="\r")
@@ -296,38 +302,35 @@ if __name__ == "__main__":
                     file_name = file_name.strip().replace(" ", "_")
                     file_name = re.sub(r'(?u)[^-\w.]', "", file_name)
                 fullpath = pjoin(base_path, file_name)
-                if (
-                        (clip_id in exist_ids and not gdrive) or
-                        (not args.dual and clip_id in files) or
-                        (clip_id in exist_ids and clip_id in files)
-                   ):
+                if ((clip_id in exist_ids and not gdrive)
+                        or (not args.dual and clip_id in files)
+                        or (clip_id in exist_ids and clip_id in files)):
                     continue
-                elif (
-                        clip_id in exist_ids and
-                        clip_id not in files and
-                        gdrive
-                     ):
+                elif (clip_id in exist_ids and clip_id not in files
+                      and gdrive):
                     download = False
                     upload = True
-                elif (
-                        clip_id not in exist_ids and
-                        clip_id not in files and
-                        gdrive
-                     ):
+                elif (clip_id not in exist_ids and clip_id not in files
+                      and gdrive):
                     upload = True
                     if not args.dual:
                         delete = True
                 try:
-                    print(str(total) + "/" + str(len(all_urls)) + "\t" +
-                          fullpath)
+                    print(
+                        str(total) + "/" + str(len(all_urls)) + "\t" +
+                        fullpath)
                     if download:
-                        dl.urlretrieve(dl_url, fullpath,
+                        dl.urlretrieve(dl_url,
+                                       fullpath,
                                        reporthook=dl_progress)
                     if upload:
-                        upload = drive.CreateFile({'title': file_name,
-                                                  'parents': [{
-                                                          'id': staging_folder
-                                                          }]})
+                        upload = drive.CreateFile({
+                            'title':
+                            file_name,
+                            'parents': [{
+                                'id': staging_folder
+                            }]
+                        })
                         upload.SetContentFile(fullpath)
                         upload.Upload()
                         if delete:
