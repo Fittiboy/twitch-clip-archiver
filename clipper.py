@@ -184,6 +184,7 @@ if __name__ == "__main__":
     elif args.local:
         print("Storing files locally.\n")
         gdrive = False
+        files = []
     else:
         print("No Google Drive credentials.txt found. Storing files locally.")
         print()
