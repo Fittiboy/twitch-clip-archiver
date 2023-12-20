@@ -189,6 +189,7 @@ if __name__ == "__main__":
         print("No Google Drive credentials.txt found. Storing files locally.")
         print()
         gdrive = False
+        files = []
     if gdrive and not args.staging_dir:
         parser.error("No --staging_dir directory specified")
     if args.dual and not gdrive:

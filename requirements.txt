@@ -1,2 +1,2 @@
-twitchAPI
+twitchAPI<3
 PyDrive
