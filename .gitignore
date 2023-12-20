@@ -1,5 +1,6 @@
 clips
 apis.json
+venv
 .python-version
 client_secrets.json
 credentials.txt
